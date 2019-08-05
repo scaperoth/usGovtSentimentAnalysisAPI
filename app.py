@@ -8,19 +8,22 @@ import os
 
 # Instantiate a flask object
 app = Flask(__name__)
+
+# set up cache for routes and api fetch
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache_timeout = 300
+if 'GOVE_SENT_CACHE_TIMEOUT' in os.environ:
+	cache_timeout = os.environ['GOVE_SENT_CACHE_TIMEOUT']
 
 # Instantiate Api object
 api = Api(app)
 
-twitterAnalysis = TwitterGovtSentiment()
-
-os.environ['GOV_SENT_SEARCH']
+twitterAnalysis = TwitterGovtSentiment(cache_timeout)
 
 class CurrentSentiment(Resource):
 
     # Creating the get method
-    @cache.cached(timeout=300)
+    @cache.cached(timeout=cache_timeout)
     def get(self):
         try:
             tweets = twitterAnalysis.get_tweets(query=os.environ['GOV_SENT_SEARCH'], count=100)

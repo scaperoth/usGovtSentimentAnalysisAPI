@@ -1,6 +1,5 @@
 # base.py
-import re
-import os
+import re, os, time
 import tweepy
 from tweepy import OAuthHandler
 from textblob import TextBlob
@@ -18,13 +17,16 @@ class TwitterGovtSentiment(object):
     Generic Twitter Class for sentiment analysis.
     '''
 
-    def __init__(self):
+    def __init__(self, cache_timeout):
         '''
         Class constructor or initialization method.
         '''
         # keys and tokens from the Twitter Dev Console
         consumer_key = os.environ['GOV_SENT_TWITTER_CONS_KEY']
         consumer_secret = os.environ['GOV_SENT_TWITTER_CONS_SECRET']
+        self.cache_timeout = cache_timeout
+        self.last_cache_time = 0
+        self.cached_tweets = []
 
         # attempt authentication
 
@@ -36,6 +38,9 @@ class TwitterGovtSentiment(object):
             self.api = tweepy.API(self.auth)
         except:
             print("Error: Authentication Failed")
+
+    def invalidate_cache(self, timestamp):
+        return time.time() - timestamp >= self.cache_timeout
 
     def clean_tweet(self, tweet):
         '''
@@ -71,8 +76,13 @@ class TwitterGovtSentiment(object):
         tweets = []
 
         try:
-            # call twitter api to fetch tweets
-            fetched_tweets = self.api.search(q=query, count=count, show_user=False)
+            # call twitter api to fetch tweets if
+            # cache is invalidated
+            fetched_tweets = self.cached_tweets
+            if(self.invalidate_cache(self.last_cache_time)):
+                fetched_tweets = self.api.search(q=query, count=count, show_user=False)
+                self.cached_tweets = fetched_tweets
+
             # parsing tweets one by one
             for tweet in fetched_tweets:
                 # empty dictionary to store required params of a tweet
