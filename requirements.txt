@@ -1,0 +1,6 @@
+Flask==1.1.1
+Flask-Caching==1.7.2
+Flask-RESTful==0.3.7
+textblob==0.15.3
+tweepy==3.8.0
+gunicorn==19.9.0
