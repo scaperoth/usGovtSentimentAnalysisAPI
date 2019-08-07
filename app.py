@@ -4,10 +4,12 @@ from base import TwitterGovtSentiment
 from flask import Flask
 from flask_restful import Resource, reqparse, Api
 from flask_caching import Cache
+from flask_cors import CORS
 import os
 
 # Instantiate a flask object
 app = Flask(__name__)
+CORS(app)
 
 # set up cache for routes and api fetch
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
